@@ -1,15 +1,21 @@
 packer {
   required_version = ">= 1.7.0"
+  required_plugins {
+    vmware = {
+      version = ">= 1.0.3"
+      source  = "github.com/hashicorp/vmware"
+    }
+  }
 }
 
 variable "iso_file_checksum" {
   type    = string
-  default = "file:install_bits/macOS_1120_installer.shasum"
+  default = "file:install_bits/macOS_1201_installer.shasum"
 }
 
 variable "iso_filename" {
   type    = string
-  default = "install_bits/macOS_1120_installer.iso"
+  default = "install_bits/macOS_1201_installer.iso"
 }
 
 variable "user_password" {
@@ -24,12 +30,12 @@ variable "user_username" {
 
 variable "cpu_count" {
   type    = number
-  default = "2"
+  default = "6"
 }
 
 variable "ram_gb" {
   type    = number
-  default = "6"
+  default = "16"
 }
 
 variable "xcode_cli" {
@@ -39,12 +45,12 @@ variable "xcode_cli" {
 
 variable "board_id" {
   type    = string
-  default = "Mac-27AD2F918AE68F61"
+  default = "Mac-7BA5B2DFE22DDD8C"
 }
 
 variable "hw_model" {
   type    = string
-  default = "MacPro7,1"
+  default = "Macmini8,1"
 }
 
 variable "serial_number" {
@@ -75,7 +81,7 @@ variable "boot_key_interval_iso" {
 
 variable "boot_wait_iso" {
   type    = string
-  default = "300s"
+  default = "150s"
 }
 
 variable "boot_keygroup_interval_iso" {
@@ -115,7 +121,8 @@ source "vmware-iso" "macOS" {
   usb                  = "true"
   version              = "19"
   cpus                 = var.cpu_count
-  cores                = var.cpu_count
+  #cores                = var.cpu_count
+  cores                = "8"
   memory               = var.ram_gb * 1024
   vmx_data = {
     "gui.fitGuestUsingNativeDisplayResolution" = "FALSE"
@@ -226,11 +233,11 @@ build {
 }
 
 build {
-  name    = "customize"
+  name = "customize"
   sources = ["sources.vmware-vmx.macOS"]
 
   provisioner "file" {
-    sources     = [var.xcode_cli, "submodules/tccutil/tccutil.py", "files/cliclick"]
+    sources     = [var.xcode_cli, "submodules/tccutil/tccutil.py", "files/cliclick", "vagrant-setup.sh"]
     destination = "~/"
   }
 
@@ -263,5 +270,10 @@ build {
 
   post-processor "shell-local" {
     inline = ["scripts/vmx_cleanup.sh output/{{build_name}}_${var.macos_version}/macOS_${var.macos_version}.vmx"]
+  }
+
+  post-processor "vagrant" {
+    keep_input_artifact = true
+    provider_override = "vmware"
   }
 }
