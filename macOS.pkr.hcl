@@ -1,8 +1,8 @@
 packer {
-  required_version = ">= 1.7.0"
+  required_version = ">= 1.7.10"
   required_plugins {
     vmware = {
-      version = ">= 1.0.3"
+      version = ">= 1.0.5"
       source  = "github.com/hashicorp/vmware"
     }
   }
@@ -10,47 +10,49 @@ packer {
 
 variable "iso_file_checksum" {
   type    = string
-  default = "file:install_bits/macOS_1201_installer.shasum"
+  default = "file:install_bits/macOS_1230_installer.shasum"
 }
 
 variable "iso_filename" {
   type    = string
-  default = "install_bits/macOS_1201_installer.iso"
+  default = "install_bits/macOS_1230_installer.iso"
 }
 
 variable "user_password" {
   type    = string
-  default = "packer"
+  default = "vagrant"
 }
 
 variable "user_username" {
   type    = string
-  default = "packer"
+  default = "vagrant"
 }
 
 variable "cpu_count" {
   type    = number
-  default = "6"
+  default = "2"
 }
 
 variable "ram_gb" {
   type    = number
-  default = "16"
+  default = "6"
 }
 
 variable "xcode_cli" {
   type    = string
-  default = "install_bits/Command_Line_Tools_for_Xcode_13.1.dmg"
+  default = "install_bits/Command_Line_Tools_for_Xcode_13.3.dmg"
 }
 
 variable "board_id" {
   type    = string
-  default = "Mac-7BA5B2DFE22DDD8C"
+  #default = "Mac-7BA5B2DFE22DDD8C"
+  default = "Mac-27AD2F918AE68F61"
 }
 
 variable "hw_model" {
   type    = string
-  default = "Macmini8,1"
+  #default = "Macmini8,1"
+  default = "MacPro7,1"
 }
 
 variable "serial_number" {
@@ -76,12 +78,12 @@ variable "tools_path" {
 
 variable "boot_key_interval_iso" {
   type    = string
-  default = "150ms"
+  default = "100ms"
 }
 
 variable "boot_wait_iso" {
   type    = string
-  default = "150s"
+  default = "90s"
 }
 
 variable "boot_keygroup_interval_iso" {
@@ -91,7 +93,7 @@ variable "boot_keygroup_interval_iso" {
 
 variable "macos_version" {
   type    = string
-  default = "12.0"
+  default = "12.3.0"
 }
 
 variable "bootstrapper_script" {
@@ -121,8 +123,7 @@ source "vmware-iso" "macOS" {
   usb                  = "true"
   version              = "19"
   cpus                 = var.cpu_count
-  #cores                = var.cpu_count
-  cores                = "8"
+  cores                = var.cpu_count
   memory               = var.ram_gb * 1024
   vmx_data = {
     "gui.fitGuestUsingNativeDisplayResolution" = "FALSE"
@@ -177,6 +178,7 @@ source "vmware-iso" "macOS" {
     "<leftCtrlon><f2><leftCtrloff>",
     "w<down><down>",
     "<enter>",
+    "curl -o /var/root/vagrant.pkg http://{{ .HTTPIP }}:{{ .HTTPPort }}/vagrant.pkg<enter>",
     "curl -o /var/root/packer.pkg http://{{ .HTTPIP }}:{{ .HTTPPort }}/packer.pkg<enter>",
     "curl -o /var/root/setupsshlogin.pkg http://{{ .HTTPIP }}:{{ .HTTPPort }}/setupsshlogin.pkg<enter>",
     "curl -o /var/root/bootstrap.sh http://{{ .HTTPIP }}:{{ .HTTPPort }}/bootstrap.sh<enter>",
@@ -237,7 +239,7 @@ build {
   sources = ["sources.vmware-vmx.macOS"]
 
   provisioner "file" {
-    sources     = [var.xcode_cli, "submodules/tccutil/tccutil.py", "files/cliclick", "vagrant-setup.sh"]
+    sources     = [var.xcode_cli, "submodules/tccutil/tccutil.py", "files/cliclick"]
     destination = "~/"
   }
 
@@ -263,10 +265,13 @@ build {
   }
 
   # optionally call external bootstrap script set by var.bootstrapper_script
-  provisioner "shell" {
-    expect_disconnect = true
-    inline            = var.bootstrapper_script
-  }
+  #provisioner "shell" {
+  #  expect_disconnect = true
+  #  # inline            = var.bootstrapper_script
+  #  scripts = [
+  #    "vagrant-setup.sh"
+  #  ]
+  #}
 
   post-processor "shell-local" {
     inline = ["scripts/vmx_cleanup.sh output/{{build_name}}_${var.macos_version}/macOS_${var.macos_version}.vmx"]
@@ -275,5 +280,6 @@ build {
   post-processor "vagrant" {
     keep_input_artifact = true
     provider_override = "vmware"
+    output = "output/vagrant-box.box"
   }
 }

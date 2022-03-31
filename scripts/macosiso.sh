@@ -31,8 +31,6 @@ if [[ $HOST_SYSTEM_SEED_STATE != $(sudo /System/Library/PrivateFrameworks/Seedin
   fi
 fi
 
-exit 0
-
 # make install disk image
 INSTALL_APP=$(ls -d /System/Volumes/Data/Applications/Install\ macOS*.app)
 echo 1 | ./submodules/create_macos_vm_install_dmg/create_macos_vm_install_dmg.sh "$INSTALL_APP" install_bits/ #|| true
