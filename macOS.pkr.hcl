@@ -10,12 +10,12 @@ packer {
 
 variable "iso_file_checksum" {
   type    = string
-  default = "file:install_bits/macOS_1230_installer.shasum"
+  default = "file:install_bits/macOS_12.3.1_21E258.shasum"
 }
 
 variable "iso_filename" {
   type    = string
-  default = "install_bits/macOS_1230_installer.iso"
+  default = "install_bits/macOS_12.3.1_21E258.iso"
 }
 
 variable "user_password" {
@@ -30,12 +30,12 @@ variable "user_username" {
 
 variable "cpu_count" {
   type    = number
-  default = "2"
+  default = "4"
 }
 
 variable "ram_gb" {
   type    = number
-  default = "6"
+  default = "8"
 }
 
 variable "xcode_cli" {
@@ -93,7 +93,7 @@ variable "boot_keygroup_interval_iso" {
 
 variable "macos_version" {
   type    = string
-  default = "12.3.0"
+  default = "12.3.1"
 }
 
 variable "bootstrapper_script" {
@@ -274,11 +274,7 @@ build {
   sources = ["sources.vmware-vmx.macOS"]
 
   provisioner "file" {
-<<<<<<< HEAD
     sources     = [var.xcode_cli, "files/cliclick"]
-=======
-    sources     = [var.xcode_cli, "submodules/tccutil/tccutil.py", "files/cliclick"]
->>>>>>> ee21739 ( some updates)
     destination = "~/"
   }
 
